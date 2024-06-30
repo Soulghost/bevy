@@ -39,11 +39,11 @@ fn calculate_neighboring_depth_differences(pixel_coordinates: vec2<i32>) -> f32 
     let uv = vec2<f32>(pixel_coordinates) / view.viewport.zw;
     let depths_upper_left = textureGather(0, preprocessed_depth, point_clamp_sampler, uv);
     let depths_bottom_right = textureGather(0, preprocessed_depth, point_clamp_sampler, uv, vec2<i32>(1i, 1i));
-    let depth_center = depths_upper_left.y;
-    let depth_left = depths_upper_left.x;
-    let depth_top = depths_upper_left.z;
-    let depth_bottom = depths_bottom_right.x;
-    let depth_right = depths_bottom_right.z;
+    let depth_center = linear_eye_depth_ortho(depths_upper_left.y);
+    let depth_left = linear_eye_depth_ortho(depths_upper_left.x);
+    let depth_top = linear_eye_depth_ortho(depths_upper_left.z);
+    let depth_bottom = linear_eye_depth_ortho(depths_bottom_right.x);
+    let depth_right = linear_eye_depth_ortho(depths_bottom_right.z);
 
     // Calculate the depth differences (large differences represent object edges)
     var edge_info = vec4<f32>(depth_left, depth_right, depth_top, depth_bottom) - depth_center;
@@ -81,8 +81,22 @@ fn reconstruct_view_space_position(depth: f32, uv: vec2<f32>) -> vec3<f32> {
 }
 
 fn load_and_reconstruct_view_space_position(uv: vec2<f32>, sample_mip_level: f32) -> vec3<f32> {
-    let depth = textureSampleLevel(preprocessed_depth, point_clamp_sampler, uv, sample_mip_level).r;
+    var depth = textureSampleLevel(preprocessed_depth, point_clamp_sampler, uv, sample_mip_level).r;
+    depth = linear_eye_depth_ortho(depth);
     return reconstruct_view_space_position(depth, uv);
+}
+
+fn linear_eye_depth_ortho(depth: f32) -> f32 {
+    let z_near = 0.0;
+    let z_far = 100.0;
+    // Linear depth buffer value between [0, 1] or [1, 0] to eye depth value between [near, far]
+    // float4 _ProjectionParams;
+    // x = 1 or -1 (-1 if projection is flipped)
+    // y = near plane
+    // z = far plane
+    // w = 1/far plane
+    return z_near + (z_far - z_near) * depth;
+    // return z_far - (z_far - z_near) * depth;
 }
 
 @compute

@@ -5,6 +5,7 @@ use bevy::{
         CascadeShadowConfigBuilder, DirectionalLightShadowMap, ScreenSpaceAmbientOcclusionBundle,
     },
     prelude::*,
+    render::camera::ScalingMode,
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use std::f32::consts::*;
@@ -26,9 +27,19 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn((
             Camera3dBundle {
+                // transform: Transform::from_xyz(2.0, 2.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y),
                 transform: camera_transform,
                 // .looking_at(Vec3::new(0.0, 0.3, 0.0), Vec3::Y),
-                ..default()
+                projection: Projection::Orthographic(OrthographicProjection {
+                    scale: 0.0005,
+                    near: 0.0,
+                    far: 100.0,
+                    viewport_origin: Vec2::new(0.5, 0.5),
+                    scaling_mode: ScalingMode::WindowSize(1.0),
+                    area: Rect::new(-1.0, -1.0, 1.0, 1.0),
+                }),
+                // projection: Projection::Perspective(PerspectiveProjection::default()),
+                ..Default::default()
             },
             EnvironmentMapLight {
                 diffuse_map: asset_server.load("environment_maps/diffuse_rgb9e5_zstd.ktx2"),
@@ -56,8 +67,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ..default()
     });
     commands.spawn(SceneBundle {
-        scene: asset_server
-            .load(GltfAssetLabel::Scene(0).from_asset("models/SSAO/PlaneEngine/scene.gltf#Scene0")),
+        scene: asset_server.load("models/SSAO/PlaneEngine/scene.gltf#Scene0"),
         transform: Transform::from_scale(Vec3::splat(2.0)),
         ..default()
     });
