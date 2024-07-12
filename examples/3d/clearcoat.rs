@@ -229,6 +229,7 @@ fn spawn_camera(commands: &mut Commands, asset_server: &AssetServer) {
             diffuse_map: asset_server.load("environment_maps/pisa_diffuse_rgb9e5_zstd.ktx2"),
             specular_map: asset_server.load("environment_maps/pisa_specular_rgb9e5_zstd.ktx2"),
             intensity: 2000.0,
+            ..Default::default()
         });
 }
 
@@ -253,23 +254,23 @@ fn animate_light(
     mut lights: Query<&mut Transform, Or<(With<PointLight>, With<DirectionalLight>)>>,
     time: Res<Time>,
 ) {
-    let now = time.elapsed_seconds();
-    for mut transform in lights.iter_mut() {
-        transform.translation = vec3(
-            f32::sin(now * 1.4),
-            f32::cos(now * 1.0),
-            f32::cos(now * 0.6),
-        ) * vec3(3.0, 4.0, 3.0);
-        transform.look_at(Vec3::ZERO, Vec3::Y);
-    }
+    // let now = time.elapsed_seconds();
+    // for mut transform in lights.iter_mut() {
+    //     transform.translation = vec3(
+    //         f32::sin(now * 1.4),
+    //         f32::cos(now * 1.0),
+    //         f32::cos(now * 0.6),
+    //     ) * vec3(3.0, 4.0, 3.0);
+    //     transform.look_at(Vec3::ZERO, Vec3::Y);
+    // }
 }
 
 /// Rotates the spheres.
 fn animate_spheres(mut spheres: Query<&mut Transform, With<ExampleSphere>>, time: Res<Time>) {
-    let now = time.elapsed_seconds();
-    for mut transform in spheres.iter_mut() {
-        transform.rotation = Quat::from_rotation_y(SPHERE_ROTATION_SPEED * now);
-    }
+    // let now = time.elapsed_seconds();
+    // for mut transform in spheres.iter_mut() {
+    //     transform.rotation = Quat::from_rotation_y(SPHERE_ROTATION_SPEED * now);
+    // }
 }
 
 /// Handles the user pressing Space to change the type of light from point to

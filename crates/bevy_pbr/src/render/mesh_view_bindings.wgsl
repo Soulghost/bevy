@@ -53,6 +53,7 @@ const VISIBILITY_RANGE_UNIFORM_BUFFER_SIZE: u32 = 64u;
 @group(0) @binding(16) var specular_environment_map: texture_cube<f32>;
 #endif
 @group(0) @binding(17) var environment_map_sampler: sampler;
+@group(0) @binding(18) var<uniform> environment_map_uniform: types::EnvironmentMapUniform;
 
 #ifdef IRRADIANCE_VOLUMES_ARE_USABLE
 #ifdef MULTIPLE_LIGHT_PROBES_IN_ARRAY
@@ -97,3 +98,6 @@ const VISIBILITY_RANGE_UNIFORM_BUFFER_SIZE: u32 = 64u;
 
 @group(0) @binding(26) var view_transmission_texture: texture_2d<f32>;
 @group(0) @binding(27) var view_transmission_sampler: sampler;
+
+// Environment Map Transformation
+@group(0) @binding(28) var<uniform> environment_map_transformation: types::EnvironmentMapUniform;
