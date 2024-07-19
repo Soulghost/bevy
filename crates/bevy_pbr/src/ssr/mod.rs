@@ -23,7 +23,7 @@ use bevy_ecs::{
 };
 use bevy_reflect::{std_traits::ReflectDefault, Reflect};
 use bevy_render::{
-    extract_component::{ExtractComponent, ExtractComponentPlugin},
+    extract_component::{DynamicUniformIndex, ExtractComponent, ExtractComponentPlugin},
     render_graph::{NodeRunError, RenderGraphApp, RenderGraphContext, ViewNode, ViewNodeRunner},
     render_resource::{
         binding_types, AddressMode, BindGroupEntries, BindGroupLayout, BindGroupLayoutEntries,
@@ -41,9 +41,10 @@ use bevy_render::{
 use bevy_utils::{info_once, prelude::default};
 
 use crate::{
-    binding_arrays_are_usable, graph::NodePbr, prelude::EnvironmentMapLight,
-    MeshPipelineViewLayoutKey, MeshPipelineViewLayouts, MeshViewBindGroup, RenderViewLightProbes,
-    ViewFogUniformOffset, ViewLightProbesUniformOffset, ViewLightsUniformOffset,
+    binding_arrays_are_usable, graph::NodePbr, prelude::EnvironmentMapLight, EnvironmentMapUniform,
+    EnvironmentMapUniformOffset, MeshPipelineViewLayoutKey, MeshPipelineViewLayouts,
+    MeshViewBindGroup, RenderViewLightProbes, ViewFogUniformOffset, ViewLightProbesUniformOffset,
+    ViewLightsUniformOffset,
 };
 
 const SSR_SHADER_HANDLE: Handle<Shader> = Handle::weak_from_u128(10438925299917978850);
@@ -258,6 +259,7 @@ impl ViewNode for ScreenSpaceReflectionsNode {
         Read<ViewFogUniformOffset>,
         Read<ViewLightProbesUniformOffset>,
         Read<ViewScreenSpaceReflectionsUniformOffset>,
+        Read<EnvironmentMapUniformOffset>,
         Read<MeshViewBindGroup>,
         Read<ScreenSpaceReflectionsPipelineId>,
     );
@@ -273,6 +275,7 @@ impl ViewNode for ScreenSpaceReflectionsNode {
             view_fog_offset,
             view_light_probes_offset,
             view_ssr_offset,
+            view_environment_offset,
             view_bind_group,
             ssr_pipeline_id,
         ): QueryItem<'w, Self::ViewQuery>,
@@ -324,6 +327,7 @@ impl ViewNode for ScreenSpaceReflectionsNode {
                 view_fog_offset.offset,
                 **view_light_probes_offset,
                 **view_ssr_offset,
+                **view_environment_offset,
             ],
         );
 
@@ -475,6 +479,10 @@ pub fn prepare_ssr_settings(
             None => 0,
             Some(ssr_uniform) => writer.write(ssr_uniform),
         };
+        println!(
+            "[SSRMod] environment uniform offset {} for {}",
+            uniform_offset, view
+        );
         commands
             .entity(view)
             .insert(ViewScreenSpaceReflectionsUniformOffset(uniform_offset));

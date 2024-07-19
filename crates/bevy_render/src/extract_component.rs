@@ -12,7 +12,7 @@ use bevy_ecs::{
     query::{QueryFilter, QueryItem, ReadOnlyQueryData},
     system::lifetimeless::Read,
 };
-use std::{marker::PhantomData, ops::Deref};
+use std::{any::type_name, marker::PhantomData, ops::Deref};
 
 pub use bevy_render_macros::ExtractComponent;
 
@@ -143,10 +143,17 @@ fn prepare_uniform_components<C>(
     };
     let entities = components_iter
         .map(|(entity, component)| {
+            let index = writer.write(component);
+            println!(
+                "prepare uniform components {} for {}, offset {}",
+                type_name::<C>(),
+                entity,
+                index
+            );
             (
                 entity,
                 DynamicUniformIndex::<C> {
-                    index: writer.write(component),
+                    index,
                     marker: PhantomData,
                 },
             )
@@ -215,6 +222,11 @@ fn extract_components<C: ExtractComponent>(
     for (entity, query_item) in &query {
         if let Some(component) = C::extract_component(query_item) {
             values.push((entity, component));
+            println!(
+                "extract component {} to entity {}",
+                type_name::<C>(),
+                entity
+            );
         }
     }
     *previous_len = values.len();

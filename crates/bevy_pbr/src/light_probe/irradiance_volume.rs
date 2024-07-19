@@ -132,7 +132,7 @@
 //!
 //! [Why ambient cubes?]: #why-ambient-cubes
 
-use bevy_ecs::component::Component;
+use bevy_ecs::{component::Component, entity::Entity};
 use bevy_render::{
     render_asset::RenderAssets,
     render_resource::{

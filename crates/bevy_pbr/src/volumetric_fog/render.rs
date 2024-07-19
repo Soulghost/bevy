@@ -18,6 +18,7 @@ use bevy_ecs::{
 };
 use bevy_math::{vec4, Mat3A, Mat4, Vec3, Vec3A, Vec4, Vec4Swizzles as _};
 use bevy_render::{
+    extract_component::DynamicUniformIndex,
     mesh::{GpuBufferInfo, GpuMesh, Mesh, MeshVertexBufferLayoutRef},
     render_asset::RenderAssets,
     render_graph::{NodeRunError, RenderGraphContext, ViewNode},
@@ -43,9 +44,10 @@ use bevy_utils::prelude::default;
 use bitflags::bitflags;
 
 use crate::{
-    FogVolume, MeshPipelineViewLayoutKey, MeshPipelineViewLayouts, MeshViewBindGroup,
-    ViewFogUniformOffset, ViewLightProbesUniformOffset, ViewLightsUniformOffset,
-    ViewScreenSpaceReflectionsUniformOffset, VolumetricFogSettings, VolumetricLight,
+    EnvironmentMapUniform, EnvironmentMapUniformOffset, FogVolume, MeshPipelineViewLayoutKey,
+    MeshPipelineViewLayouts, MeshViewBindGroup, ViewFogUniformOffset, ViewLightProbesUniformOffset,
+    ViewLightsUniformOffset, ViewScreenSpaceReflectionsUniformOffset, VolumetricFogSettings,
+    VolumetricLight,
 };
 
 bitflags! {
@@ -304,6 +306,7 @@ impl ViewNode for VolumetricFogNode {
         Read<ViewVolumetricFog>,
         Read<MeshViewBindGroup>,
         Read<ViewScreenSpaceReflectionsUniformOffset>,
+        Read<EnvironmentMapUniformOffset>,
     );
 
     fn run<'w>(
@@ -321,6 +324,7 @@ impl ViewNode for VolumetricFogNode {
             view_fog_volumes,
             view_bind_group,
             view_ssr_offset,
+            view_environment_map_offset,
         ): QueryItem<'w, Self::ViewQuery>,
         world: &'w World,
     ) -> Result<(), NodeRunError> {
@@ -437,6 +441,7 @@ impl ViewNode for VolumetricFogNode {
                     view_fog_offset.offset,
                     **view_light_probes_offset,
                     **view_ssr_offset,
+                    **view_environment_map_offset,
                 ],
             );
             render_pass.set_bind_group(

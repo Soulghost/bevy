@@ -42,11 +42,12 @@ use crate::{
         self, IrradianceVolume, RenderViewIrradianceVolumeBindGroupEntries,
         IRRADIANCE_VOLUMES_ARE_USABLE,
     },
-    prepass, EnvironmentMapUniform, FogMeta, GlobalClusterableObjectMeta, GpuClusterableObjects,
-    GpuFog, GpuLights, LightMeta, LightProbesBuffer, LightProbesUniform, MeshPipeline,
-    MeshPipelineKey, RenderViewLightProbes, ScreenSpaceAmbientOcclusionTextures,
-    ScreenSpaceReflectionsBuffer, ScreenSpaceReflectionsUniform, ShadowSamplers,
-    ViewClusterBindings, ViewShadowBindings, CLUSTERED_FORWARD_STORAGE_BUFFER_COUNT,
+    prepass, EnvironmentMapUniform, EnvironmentMapUniformBuffer, FogMeta,
+    GlobalClusterableObjectMeta, GpuClusterableObjects, GpuFog, GpuLights, LightMeta,
+    LightProbesBuffer, LightProbesUniform, MeshPipeline, MeshPipelineKey, RenderViewLightProbes,
+    ScreenSpaceAmbientOcclusionTextures, ScreenSpaceReflectionsBuffer,
+    ScreenSpaceReflectionsUniform, ShadowSamplers, ViewClusterBindings, ViewShadowBindings,
+    CLUSTERED_FORWARD_STORAGE_BUFFER_COUNT,
 };
 
 #[derive(Clone)]
@@ -397,6 +398,11 @@ impl MeshPipelineViewLayouts {
         let index = layout_key.bits() as usize;
         let layout = &self[index];
 
+        println!(
+            "[MeshPipelineViewLayouts] get view layout with index {}, layout texture count {:?}",
+            index, layout.texture_count
+        );
+
         #[cfg(debug_assertions)]
         if layout.texture_count > MESH_PIPELINE_VIEW_LAYOUT_SAFE_MAX_TEXTURES {
             // Issue our own warning here because Naga's error message is a bit cryptic in this situation
@@ -452,10 +458,7 @@ pub fn prepare_mesh_view_bind_groups(
     light_meta: Res<LightMeta>,
     global_light_meta: Res<GlobalClusterableObjectMeta>,
     fog_meta: Res<FogMeta>,
-    (view_uniforms, environment_map_uniforms): (
-        Res<ViewUniforms>,
-        Res<ComponentUniforms<EnvironmentMapUniform>>,
-    ),
+    (view_uniforms, environment_map_uniform): (Res<ViewUniforms>, Res<EnvironmentMapUniformBuffer>),
     views: Query<(
         Entity,
         &ViewShadowBindings,
@@ -499,7 +502,7 @@ pub fn prepare_mesh_view_bind_groups(
         light_probes_buffer.binding(),
         visibility_ranges.buffer().buffer(),
         ssr_buffer.binding(),
-        environment_map_uniforms.binding(),
+        environment_map_uniform.binding(),
     ) {
         for (
             entity,
@@ -645,5 +648,7 @@ pub fn prepare_mesh_view_bind_groups(
                 value: render_device.create_bind_group("mesh_view_bind_group", layout, &entries),
             });
         }
+    } else {
+        println!("exception case");
     }
 }
